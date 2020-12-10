@@ -1,0 +1,15 @@
+---
+# Use the 'create api' subcommand to add watches to this file.
+- version: v1alpha1
+  group: database.dhoover103.com
+  kind: MongoDB
+  role: mongodb
+- version: v1alpha1
+  group: database.dhoover103.com
+  kind: Restore
+  role: restore
+- version: v1alpha1
+  group: database.dhoover103.com
+  kind: OnDemandBackup
+  role: ondemandbackup
+# +kubebuilder:scaffold:watch

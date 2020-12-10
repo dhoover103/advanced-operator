@@ -1,0 +1,8 @@
+---
+# defaults file for Restore
+pvcName: mongodb-data
+
+backup:
+  pvc: my-backups
+
+backupToRestore: /backups/my-backup.tar

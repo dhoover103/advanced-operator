@@ -1,0 +1,33 @@
+---
+# tasks file for OnDemandBackup
+- name: create a backup
+  k8s:
+    definition:
+      kind: Job
+      apiVersion: batch/v1
+      metadata:
+        name: "{{ backup.name }}"
+        namespace: "{{ ansible_operator_meta.namespace }}"
+      spec:
+        template:
+          spec:
+            restartPolicy: "Never"
+            volumes:
+            - name: mongodb-data
+              persistentVolumeClaim:
+                claimName: "{{ pvcName }}"
+            - name: mongodb-backups
+              persistentVolumeClaim:
+                claimName: "{{ backup.pvc }}"
+            containers:
+            - name: backup
+              image: "{{ lookup('env','RELATED_IMAGE_BACKUP_RESTORE') | quote }}"
+              args:
+              - /bin/sh
+              - -c 
+              - tar -cvf /backups/on-demand-"{{ backup.name }}".tar /var/lib/mongodb/data
+              volumeMounts:
+              - name: mongodb-data
+                mountPath: "/var/lib/mongodb/data"
+              - name: mongodb-backups
+                mountPath: "/backups"

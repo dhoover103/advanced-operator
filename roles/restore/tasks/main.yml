@@ -1,0 +1,34 @@
+---
+# tasks file for Restore
+- name: restore
+  k8s:
+    definition:
+      kind: Job
+      apiVersion: batch/v1
+      metadata:
+        name: restore
+        namespace: "{{ ansible_operator_meta.namespace }}"
+      spec:
+        template:
+          spec:
+            restartPolicy: OnFailure
+            volumes:
+            - name: mongodb-data
+              persistentVolumeClaim:
+                claimName: "{{ pvcName }}"
+            - name: mongodb-backups
+              persistentVolumeClaim:
+                claimName: "{{ backup.pvc }}"
+            containers:
+            - name: "restore"
+              image: "{{ lookup('env','RELATED_IMAGE_BACKUP_RESTORE') | quote }}"
+              args:
+              - /bin/sh
+              - -c 
+              - tar -xvf "{{ backupToRestore }}" -C /var/lib/mongodb/ --overwrite
+              volumeMounts:
+              - name: mongodb-data
+                mountPath: "/var/lib/mongodb/data"
+              - name: mongodb-backups
+                mountPath: "/backups"
+

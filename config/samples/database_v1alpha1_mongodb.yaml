@@ -1,0 +1,22 @@
+apiVersion: database.dhoover103.com/v1alpha1
+kind: MongoDB
+metadata:
+  name: mongodb-sample
+  annotations:
+    "ansible.sdk.operatorframework.io/verbosity": "7"
+spec:
+  mongodb_user: exampleusr
+  mongodb_password: d3f4ultP4ssw0rd
+  mongodb_database: exampledb
+  mongodb_admin_password: 4dm1nP4ssw0rd
+  memory_limit: 512Mi
+  k8s_name: "{{ meta.name | default('mongodb') }}"
+  namespace: "{{ meta.namespace | default('mongodb') }}"
+  image: "{{ lookup('env','RELATED_IMAGE_DB') | quote }}"
+  pvcName: mongodb-data
+
+  backup:
+    name: backup
+    schedule: "* 1 * * *"
+    pvc: my-backups
+

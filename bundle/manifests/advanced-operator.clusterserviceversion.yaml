@@ -1,0 +1,263 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "database.dhoover103.com/v1alpha1",
+          "kind": "MongoDB",
+          "metadata": {
+            "annotations": {
+              "ansible.sdk.operatorframework.io/verbosity": "7"
+            },
+            "name": "mongodb-sample"
+          },
+          "spec": {
+            "backup": {
+              "name": "backup",
+              "pvc": "my-backups",
+              "schedule": "* 1 * * *"
+            },
+            "image": "{{ lookup('env','RELATED_IMAGE_DB') | quote }}",
+            "k8s_name": "{{ meta.name | default('mongodb') }}",
+            "memory_limit": "512Mi",
+            "mongodb_admin_password": "4dm1nP4ssw0rd",
+            "mongodb_database": "exampledb",
+            "mongodb_password": "d3f4ultP4ssw0rd",
+            "mongodb_user": "exampleusr",
+            "namespace": "{{ meta.namespace | default('mongodb') }}",
+            "pvcName": "mongodb-data"
+          }
+        },
+        {
+          "apiVersion": "database.dhoover103.com/v1alpha1",
+          "kind": "OnDemandBackup",
+          "metadata": {
+            "name": "ondemandbackup-sample"
+          },
+          "spec": {
+            "backup": {
+              "name": "backup",
+              "pvc": "my-backups"
+            },
+            "pvcName": "mongodb-data"
+          }
+        },
+        {
+          "apiVersion": "database.dhoover103.com/v1alpha1",
+          "kind": "Restore",
+          "metadata": {
+            "name": "restore-sample"
+          },
+          "spec": {
+            "backup": {
+              "pvc": "my-backups"
+            },
+            "backupToRestore": "/backups/my-backup.tar",
+            "pvcName": "mongodb-data"
+          }
+        }
+      ]
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.2.0
+    operators.operatorframework.io/project_layout: ansible.sdk.operatorframework.io/v1
+  name: advanced-operator.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: MongoDB
+      name: mongodbs.database.dhoover103.com
+      version: v1alpha1
+    - kind: OnDemandBackup
+      name: ondemandbackups.database.dhoover103.com
+      version: v1alpha1
+    - kind: Restore
+      name: restores.database.dhoover103.com
+      version: v1alpha1
+  description: sample mongodb operator with advanced capabilities
+  displayName: mongodb
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - secrets
+          - pods
+          - pods/exec
+          - pods/log
+          - services
+          - persistentvolumeclaims
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - database.dhoover103.com
+          resources:
+          - mongodbs
+          - mongodbs/status
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - batch
+          resources:
+          - cronjobs
+          - jobs
+          verbs:
+          - '*'
+        - apiGroups:
+          - database.dhoover103.com
+          resources:
+          - restores
+          - restores/status
+          - restores/finalizers
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - database.dhoover103.com
+          resources:
+          - ondemandbackups
+          - ondemandbackups/status
+          - ondemandbackups/finalizers
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        serviceAccountName: default
+      deployments:
+      - name: advanced-operator-controller-manager
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              control-plane: controller-manager
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                control-plane: controller-manager
+            spec:
+              containers:
+              - args:
+                - --secure-listen-address=0.0.0.0:8443
+                - --upstream=http://127.0.0.1:8080/
+                - --logtostderr=true
+                - --v=10
+                image: registry.redhat.io/openshift4/ose-kube-rbac-proxy:latest
+                name: kube-rbac-proxy
+                ports:
+                - containerPort: 8443
+                  name: https
+                resources: {}
+              - args:
+                - --metrics-addr=127.0.0.1:8080
+                - --enable-leader-election
+                - --leader-election-id=advanced-operator
+                env:
+                - name: RELATED_IMAGE_DB
+                  value: registry.access.redhat.com/rhscl/mongodb-36-rhel7:latest
+                - name: RELATED_IMAGE_BACKUP_RESTORE
+                  value: registry.redhat.io/ubi8/ubi:latest
+                image: quay.io/dhoover103/advanced-operator:latest
+                name: manager
+                resources: {}
+              terminationGracePeriodSeconds: 10
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        serviceAccountName: default
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - database
+  links:
+  - name: Advanced Operator
+    url: https://advanced-operator.domain
+  maintainers:
+  - email: dhoover@redhat.com
+    name: dhoover
+  maturity: alpha
+  provider:
+    name: none
+  version: 0.0.1

@@ -1,0 +1,10 @@
+apiVersion: database.dhoover103.com/v1alpha1
+kind: OnDemandBackup
+metadata:
+  name: ondemandbackup-sample
+spec:
+  pvcName: mongodb-data
+  backup:
+    name: backup
+    pvc: my-backups
+

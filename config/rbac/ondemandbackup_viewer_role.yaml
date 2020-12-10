@@ -1,0 +1,20 @@
+# permissions for end users to view ondemandbackups.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ondemandbackup-viewer-role
+rules:
+- apiGroups:
+  - database.dhoover103.com
+  resources:
+  - ondemandbackups
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - database.dhoover103.com
+  resources:
+  - ondemandbackups/status
+  verbs:
+  - get

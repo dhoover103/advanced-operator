@@ -1,0 +1,14 @@
+domain: dhoover103.com
+layout: ansible.sdk.operatorframework.io/v1
+projectName: advanced-operator
+resources:
+- group: database
+  kind: MongoDB
+  version: v1alpha1
+- group: database
+  kind: Restore
+  version: v1alpha1
+- group: database
+  kind: OnDemandBackup
+  version: v1alpha1
+version: 3-alpha

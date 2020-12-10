@@ -1,0 +1,7 @@
+---
+# defaults file for OnDemandBackup
+pvcName: mongodb-data
+
+backup:
+  name: on-demand-backup
+  pvc: my-backups

@@ -1,0 +1,9 @@
+apiVersion: database.dhoover103.com/v1alpha1
+kind: Restore
+metadata:
+  name: restore-sample
+spec:
+  pvcName: mongodb-data
+  backup:
+    pvc: my-backups
+  backupToRestore: /backups/my-backup.tar
