@@ -138,6 +138,8 @@
           requests:
             storage: 1Gi
 
+## This task creates a regularly-scheduled backup. You can add a similar task to any Ansible operator to add this functionality
+
 - name: create backup cron job
   k8s:
     definition:
@@ -147,7 +149,7 @@
         name: "{{ backup.name }}"
         namespace: "{{ ansible_operator_meta.namespace }}"
       spec:
-        schedule: "{{ backup.schedule }}"
+        schedule: "{{ backup.schedule }}"  #Don't forget to add variables to the defaults and CR!
 #        schedule: 1/* * * * *
         jobTemplate:
           spec:
@@ -164,7 +166,7 @@
                 containers:
                 - name: scheduledbackup
                   image: "{{ lookup('env','RELATED_IMAGE_BACKUP_RESTORE') | quote }}"
-                  args:
+                  args:  #This bit is the actual backup logic - change it as needed for your operator
                   - /bin/sh
                   - -c 
                   - tar -cvf /backups/scheduled-$(date +"%d-%m-%Y-%H-%M").tar /var/lib/mongodb/data
